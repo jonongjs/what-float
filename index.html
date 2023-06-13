@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>What's in a Float?</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<style>
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+	overscroll-behavior: none;
+
+	position: fixed;
+
+	color: white;
+	background-color: black;
+	text-align: center;
+}
+
+slide {
+	display: block;
+	position: absolute;
+	width: 100vmin;
+	height: 100vmin;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	box-sizing: border-box;
+
+	background-color: black;
+	text-align: left;
+	padding: 5px 10px;
+	font-size: 5vmin;
+
+	visibility: hidden;
+}
+
+.click-in {
+	visibility: hidden;
+}
+
+.show {
+	visibility: visible;
+}
+
+h1, h2 {
+	text-align: center;
+}
+
+ul {
+	list-style: square inside;
+}
+li ul {
+	list-style: circle inside;
+	margin-left: 1em;
+}
+		</style>
+
+	</head>
+	<body>
+
+		<slide id="title" class="show">
+			<h1>What's in a Float?</h1>
+		</slide>
+
+		<slide id="toc">
+			<h2>What's in a Float?</h2>
+			<ul>
+				<li class="click-in">What is fixed-point?</li>
+				<li class="click-in">What is floating-point?</li>
+			</ul>
+		</slide>
+
+		<slide id="takeaway">
+			<h2>Key takeaways</h2>
+			<ul>
+				<li class="click-in">Finite precision</li>
+			</ul>
+		</slide>
+
+		<slide id="fin">
+			<h2>Fin.</h2>
+			<ul>
+				<li>References
+					<ul>
+						<li><a href="https://ciechanow.ski/exposing-floating-point/">Exposing Floating Point</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul>
+				<li>Exploration
+					<ul>
+						<li><a href="https://float.exposed/">float.exposed</a></li>
+					</ul>
+				</li>
+			</ul>
+		</slide>
+
+		<script>
+			const slides = Array.from(
+				document.querySelectorAll('slide').values()
+			).map((elt) => elt.id);
+
+			let currentSlideIdx = 0;
+
+			/**
+			 * @param {string} slideId
+			 * @param {boolean} [showAll]
+			 */
+			function goToSlide(slideId, showAll) {
+				currentSlideIdx = Math.max(0, slides.indexOf(slideId));
+				document.querySelectorAll('slide').forEach((elt, idx) => {
+					if (idx <= currentSlideIdx) {
+						elt.classList.add('show');
+					} else {
+						elt.classList.remove('show');
+					}
+
+					elt.querySelectorAll('.click-in').forEach((subElt) => {
+						const toShow = (idx < currentSlideIdx) || (idx == currentSlideIdx && showAll);
+						if (toShow) {
+							subElt.classList.add('show');
+						} else {
+							subElt.classList.remove('show');
+						}
+					});
+				});
+			}
+
+			function goToNext() {
+				// check that we've gone through all items on this slide
+				const slide = document.querySelectorAll('slide')[currentSlideIdx];
+				const allItems = slide.querySelectorAll('.click-in');
+				const shownItems = slide.querySelectorAll('.click-in.show');
+				if (shownItems.length < allItems.length) {
+					// we haven't shown all items yet, so show the next one
+					allItems[shownItems.length].classList.add('show');
+				} else {
+					// move on to the next slide if possible
+					if (currentSlideIdx < slides.length - 1) {
+						const newSlideId = slides[currentSlideIdx + 1];
+
+						//NOTE: hashchange will not be fired from history.pushState()
+						history.pushState({}, '', '#' + newSlideId);
+
+						// hashchange event does not get fired from history.pushState(),
+						// so we have to set the slide manually
+						goToSlide(newSlideId);
+					}
+				}
+			}
+
+			function goToPrev() {
+				// check that we still have some items to clear out
+				const slide = document.querySelectorAll('slide')[currentSlideIdx];
+				const allItems = slide.querySelectorAll('.click-in');
+				const shownItems = slide.querySelectorAll('.click-in.show');
+				if (shownItems.length > 0) {
+					// we haven't cleared out all items yet, so hide the earlier one
+					allItems[shownItems.length - 1].classList.remove('show');
+				} else {
+					// move back to the prev slide if possible
+					if (currentSlideIdx > 0) {
+						const newSlideId = slides[currentSlideIdx - 1];
+
+						//NOTE: hashchange will not be fired from history.pushState()
+						history.pushState({}, '', '#' + newSlideId);
+
+						// hashchange event does not get fired from history.pushState(),
+						// so we have to set the slide manually
+						goToSlide(newSlideId, true);
+					}
+				}
+			}
+
+			// navigation controls
+
+			window.addEventListener('popstate', function (evt) {
+				const slideId = location.hash?.substring(1);
+				goToSlide(slideId);
+			});
+
+			window.addEventListener('keydown', function (evt) {
+				if (evt.defaultPrevented) {
+					return; // do nothing if the event was already processed
+				}
+
+				switch (evt.key) {
+					case 'ArrowRight':
+						goToNext();
+						break;
+
+					case 'ArrowLeft':
+						goToPrev();
+						break;
+				}
+			});
+
+			window.addEventListener('pointerdown', function () {
+				goToNext();
+			});
+
+			// force the current slide based on URL
+			goToSlide(location.hash?.substring(1));
+		</script>
+	</body>
+</html>
