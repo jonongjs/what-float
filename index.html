@@ -4,7 +4,17 @@
 		<title>What's in a Float?</title>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
 		<style>
+:root {
+	--reddish: #fb015b;
+	--yellowish: #fef7e0;
+	--greenish: #41ba63;
+	--bluish: #00b9f1;
+}
+
 * {
 	margin: 0;
 	padding: 0;
@@ -20,6 +30,8 @@ html, body {
 	color: white;
 	background-color: black;
 	text-align: center;
+
+	font-family: 'Lato', sans-serif;
 }
 
 slide {
@@ -40,6 +52,27 @@ slide {
 	visibility: hidden;
 }
 
+#title h1 {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+
+	width: 100%;
+	text-align: center;
+
+	font-size: 2em;
+}
+
+slide h2 {
+	padding-bottom: 0.5em;
+	font-size: 1.5em;
+}
+
+bit-field {
+	display: block;
+	width: 100%;
+}
+
 .click-in {
 	visibility: hidden;
 }
@@ -48,16 +81,25 @@ slide {
 	visibility: visible;
 }
 
-h1, h2 {
-	text-align: center;
-}
-
 ul {
 	list-style: square inside;
 }
 li ul {
 	list-style: circle inside;
 	margin-left: 1em;
+}
+
+pre {
+	display: inline-block;
+	background-color: var(--yellowish);
+	color: black;
+	border: 2px solid var(--reddish);
+	border-radius: 4px;
+}
+
+.mono {
+	font-family: 'Roboto Mono', monospace;
+	font-size: 0.9em;
 }
 		</style>
 
@@ -68,12 +110,70 @@ li ul {
 			<h1>What's in a Float?</h1>
 		</slide>
 
-		<slide id="toc">
-			<h2>What's in a Float?</h2>
+		<slide id="intro">
+			<h2>Background</h2>
 			<ul>
-				<li class="click-in">What is fixed-point?</li>
-				<li class="click-in">What is floating-point?</li>
+				<li class="click-in">Floating point calculations are commonly used, but do we know where the pitfalls are?</li>
 			</ul>
+		</slide>
+
+		<slide id="quiz">
+			<h2>Quiz</h2>
+			<ul>
+				<li class="click-in">What's a floating point number?</li>
+				<li class="click-in">What's the result of <pre class=mono>0.1 + 0.2 == 0.3</pre>?</li>
+				<li class="click-in">Again, what's a floating point number?</li>
+			</ul>
+		</slide>
+
+		<slide id="fixedpt">
+			<h2>Fixed Point</h2>
+			<ul>
+				<li class="click-in">Finite precision</li>
+			</ul>
+		</slide>
+
+		<slide id="floatingpt">
+			<h2>Floating Point</h2>
+			<ul>
+				<li class="click-in">Most common standard: IEEE 754</li>
+				<li class="click-in">Definition:</li>
+				<li class="click-in">Special values:</li>
+			</ul>
+		</slide>
+
+		<slide id="deeper">
+			<h2>Looking Deeper</h2>
+			<div id=inspector>
+				<label for=inspector-input class=no-advance>Input:</label>
+				<input id=inspector-input type=text class=no-advance value=0>
+				<bit-field id=inspector-bits
+					data-sign-bits=1
+					data-exponent-bits=8
+					data-significand-bits=23
+					data-value=0
+					class=no-advance
+				>
+				</bit-field>
+				<script>
+					document.getElementById('inspector-input')
+						.addEventListener('input', function(evt) {
+							document.getElementById('inspector-bits')
+								.setAttribute('data-value', evt.target.value);
+						});
+					document.getElementById('inspector-bits')
+						.addEventListener('valueUpdate', function(evt) {
+							const value = evt.detail.value;
+							let displayValue = value.toString();
+							// hack for -0
+							if (Object.is(-0, value)) {
+								displayValue = '-0';
+							}
+							document.getElementById('inspector-input')
+								.value = displayValue;
+						});
+				</script>
+			</div>
 		</slide>
 
 		<slide id="takeaway">
@@ -89,6 +189,8 @@ li ul {
 				<li>References
 					<ul>
 						<li><a href="https://ciechanow.ski/exposing-floating-point/">Exposing Floating Point</a></li>
+						<li><a href="https://jvns.ca/blog/2023/01/13/examples-of-floating-point-problems/">Examples of floating point problems</a></li>
+						<li><a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a></li>
 					</ul>
 				</li>
 			</ul>
@@ -190,23 +292,198 @@ li ul {
 					return; // do nothing if the event was already processed
 				}
 
-				switch (evt.key) {
-					case 'ArrowRight':
-						goToNext();
-						break;
+				// only continue with slideshow if we are not in some input
+				if (!evt.target.classList.contains('no-advance')) {
+					switch (evt.key) {
+						case 'ArrowRight':
+							goToNext();
+							break;
 
-					case 'ArrowLeft':
-						goToPrev();
-						break;
+						case 'ArrowLeft':
+							goToPrev();
+							break;
+					}
 				}
 			});
 
-			window.addEventListener('pointerdown', function () {
-				goToNext();
+			window.addEventListener('pointerdown', function (evt) {
+				if (evt.target.classList.contains('no-advance')) {
+					evt.stopPropagation();
+				} else {
+					goToNext();
+				}
 			});
 
 			// force the current slide based on URL
 			goToSlide(location.hash?.substring(1));
+
+			// custom element for bit fields
+			class BitField extends HTMLElement {
+				constructor() {
+					super();
+
+					this.buffer = new ArrayBuffer(Float32Array.BYTES_PER_ELEMENT);
+					this.byteView = new Uint8Array(this.buffer);
+					this.float32Array = new Float32Array(this.buffer);
+
+					this.attachShadow({mode: 'open'});
+				}
+
+				connectedCallback() {
+					const self = this;
+					const shadow = this.shadowRoot;
+
+					const root = document.createElement('div');
+					root.classList.add('root');
+
+					const numSignBits = this.hasAttribute('data-sign-bits')
+						? parseInt(this.getAttribute('data-sign-bits'), 10)
+						: 1;
+
+					const numExponentBits = this.hasAttribute('data-exponent-bits')
+						? parseInt(this.getAttribute('data-exponent-bits'), 10)
+						: 1;
+
+					const numSignificandBits = this.hasAttribute('data-significand-bits')
+						? parseInt(this.getAttribute('data-significand-bits'), 10)
+						: 1;
+
+					function makeSection(className, numBits) {
+						const div = document.createElement('div');
+						div.classList.add('section', className);
+						for (let i=0; i<numBits; ++i) {
+							const input = document.createElement('div');
+							input.classList.add('bit');
+							input.textContent = '0';
+							div.appendChild(input);
+
+							input.addEventListener('click', function(evt) {
+								if (input.textContent == '1') {
+									input.textContent = '0';
+								} else {
+									input.textContent = '1';
+								}
+
+								const newFloat = self.reverseBits();
+
+								// update input by custom event
+								const customEvent = new CustomEvent('valueUpdate', {
+									detail: {
+										value: newFloat
+									}
+								});
+								self.dispatchEvent(customEvent);
+							});
+						}
+						return div;
+					}
+
+					const signDiv = makeSection('sign-bits', numSignBits);
+					const exponentDiv = makeSection('exponent-bits', numExponentBits);
+					const significandDiv = makeSection('significand-bits', numSignificandBits);
+
+					root.append(signDiv, exponentDiv, significandDiv);
+
+					// style the content
+					const style = document.createElement("style");
+					style.textContent = `
+.root {
+	display: block;
+	width: 100%;
+	border: 1px solid black;
+	font-family: 'Roboto Mono', monospace;
+}
+
+.section {
+	display: inline-block;
+	margin-right: 5px;
+	line-height: 0.7em;
+	padding: 1px;
+	border: 1px transparent solid;
+	border-radius: 2px;
+}
+.section div {
+	display: inline-block;
+	border: 1px solid black;
+	margin: 0;
+	font-size: 0.7em;
+}
+
+.sign-bits {
+	background-color: var(--reddish);
+}
+
+.exponent-bits {
+	background-color: var(--greenish);
+}
+
+.significand-bits {
+	background-color: var(--bluish);
+}
+`;
+
+					shadow.append(style, root);
+				}
+
+				static get observedAttributes() {
+					return ['data-value'];
+				}
+
+				attributeChangedCallback(name, oldValue, newValue) {
+					if (name == 'data-value') {
+						const newFloat = parseFloat(newValue);
+						if (!isNaN(newValue) && oldValue != newValue) {
+							this.replaceBits(newFloat);
+						}
+					}
+				}
+
+				replaceBits(v) {
+					this.float32Array[0] = v;
+					const bits = Array.from(this.shadowRoot.querySelectorAll('.bit'))
+						.reverse();
+					if (bits.length == 0) {
+						return;
+					}
+
+					let bitIdx = 0;
+					for (let b of this.byteView) {
+						for (let i = 0; i < 8; ++i) {
+							const bitValue = b & 1;
+							bits[bitIdx].textContent = bitValue.toString();
+							b = b >> 1;
+							++bitIdx;
+						}
+					}
+				}
+
+				reverseBits(v) {
+					const bits = Array.from(this.shadowRoot.querySelectorAll('.bit'));
+					if (bits.length == 0) {
+						return;
+					}
+
+					let bitIdx = 0;
+					for (let byteIdx = this.byteView.byteLength - 1; byteIdx >= 0; --byteIdx) {
+						let byteValue = 0;
+						for (let i=0; i<8; ++i) {
+							const bitText = bits[bitIdx].textContent;
+							const bitValue = bitText == '1' ? 1 : 0;
+							byteValue = byteValue | bitValue;
+						   if (i < 7) {
+							   byteValue = byteValue << 1;
+						   }
+							++bitIdx;
+						}
+						this.byteView[byteIdx] = byteValue;
+					}
+
+					return this.float32Array[0];
+				}
+			}
+
+			// Define the new element
+			customElements.define('bit-field', BitField);
 		</script>
 	</body>
 </html>
