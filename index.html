@@ -68,6 +68,19 @@ slide h2 {
 	font-size: 1.5em;
 }
 
+input[type='text'] {
+	border-bottom: 1px solid white;
+	border-top: none;
+	border-left: none;
+	border-right: none;
+
+	background-color: black;
+	color: white;
+
+	font-size: 0.75em;
+	font-family: 'Roboto Mono', monospace;
+}
+
 bit-field {
 	display: block;
 	width: 100%;
@@ -145,8 +158,10 @@ pre {
 		<slide id="deeper">
 			<h2>Looking Deeper</h2>
 			<div id=inspector>
-				<label for=inspector-input class=no-advance>Input:</label>
-				<input id=inspector-input type=text class=no-advance value=0>
+				<form id=inspector-form action="#">
+					<label for=inspector-input class=no-advance>Value:</label>
+					<input id=inspector-input type=text class=no-advance value=0>
+				</form>
 				<bit-field id=inspector-bits
 					data-sign-bits=1
 					data-exponent-bits=8
@@ -156,11 +171,16 @@ pre {
 				>
 				</bit-field>
 				<script>
-					document.getElementById('inspector-input')
-						.addEventListener('input', function(evt) {
+					document.getElementById('inspector-form')
+						.addEventListener('submit', function(evt) {
+							evt.preventDefault();
+
+							const inputValue = document.getElementById('inspector-input')
+								.value;
 							document.getElementById('inspector-bits')
-								.setAttribute('data-value', evt.target.value);
+								.setAttribute('data-value', inputValue);
 						});
+
 					document.getElementById('inspector-bits')
 						.addEventListener('valueUpdate', function(evt) {
 							const value = evt.detail.value;
@@ -352,12 +372,14 @@ pre {
 						const div = document.createElement('div');
 						div.classList.add('section', className);
 						for (let i=0; i<numBits; ++i) {
-							const input = document.createElement('div');
+							const input = document.createElement('a');
 							input.classList.add('bit');
 							input.textContent = '0';
 							div.appendChild(input);
 
 							input.addEventListener('click', function(evt) {
+								evt.preventDefault();
+
 								if (input.textContent == '1') {
 									input.textContent = '0';
 								} else {
@@ -395,17 +417,15 @@ pre {
 }
 
 .section {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+
+	line-height: 0.9em;
 	margin-right: 5px;
-	line-height: 0.7em;
 	padding: 1px;
 	border: 1px transparent solid;
 	border-radius: 2px;
-}
-.section div {
-	display: inline-block;
-	border: 1px solid black;
-	margin: 0;
+
 	font-size: 0.7em;
 }
 
@@ -455,9 +475,18 @@ pre {
 							++bitIdx;
 						}
 					}
+
+					const newFloat = this.reverseBits();
+					// update input by custom event
+					const customEvent = new CustomEvent('valueUpdate', {
+						detail: {
+							value: newFloat
+						}
+					});
+					this.dispatchEvent(customEvent);
 				}
 
-				reverseBits(v) {
+				reverseBits() {
 					const bits = Array.from(this.shadowRoot.querySelectorAll('.bit'));
 					if (bits.length == 0) {
 						return;
