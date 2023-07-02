@@ -499,9 +499,9 @@ pre {
 							const bitText = bits[bitIdx].textContent;
 							const bitValue = bitText == '1' ? 1 : 0;
 							byteValue = byteValue | bitValue;
-						   if (i < 7) {
-							   byteValue = byteValue << 1;
-						   }
+							if (i < 7) {
+								byteValue = byteValue << 1;
+							}
 							++bitIdx;
 						}
 						this.byteView[byteIdx] = byteValue;
