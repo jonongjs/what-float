@@ -9,10 +9,19 @@
 		<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Roboto+Mono&display=swap" rel="stylesheet">
 		<style>
 :root {
-	--reddish: #fb015b;
-	--yellowish: #fef7e0;
-	--greenish: #41ba63;
-	--bluish: #00b9f1;
+	/* https://lospec.com/palette-list/akc12 */
+	--dark: #201127;
+	--navy: #201433;
+	--dark-blue: #1b1e34;
+	--dark-green: #355d68;
+	--greenish: #6aaf9d;
+	--light-green: #94c5ac;
+	--yellowish: #ffeb99;
+	--orange: #ffc27a;
+	--dark-orange: #ec9a6d;
+	--reddish: #d9626b;
+	--dark-red: #c24b6e;
+	--maroon: #a73169;
 }
 
 * {
@@ -27,11 +36,20 @@ html, body {
 
 	position: fixed;
 
-	color: white;
-	background-color: black;
+	--bg-color: var(--dark);
+	--fg-color: white;
+	color: var(--fg-color);
+	background-color: var(--bg-color);
 	text-align: center;
 
 	font-family: 'Lato', sans-serif;
+}
+
+body:has(#bright:checked) {
+	--bg-color: white;
+	--fg-color: var(--dark);
+	color: var(--fg-color);
+	background-color: var(--bg-color);
 }
 
 slide {
@@ -44,12 +62,14 @@ slide {
 	transform: translate(-50%, -50%);
 	box-sizing: border-box;
 
-	background-color: black;
+	background-color: var(--bg-color);
 	text-align: left;
 	padding: 5px 10px;
 	font-size: 5vmin;
 
 	visibility: hidden;
+	opacity: 0;
+	transition: opacity 350ms;
 }
 
 #title h1 {
@@ -69,13 +89,14 @@ slide h2 {
 }
 
 input[type='text'] {
-	border-bottom: 1px solid white;
+	border-bottom: 1px solid var(--fg-color);
 	border-top: none;
 	border-left: none;
 	border-right: none;
+	margin-bottom: 5px;
 
-	background-color: black;
-	color: white;
+	background-color: var(--bg-color);
+	color: var(--fg-color);
 
 	font-size: 0.75em;
 	font-family: 'Roboto Mono', monospace;
@@ -88,14 +109,28 @@ bit-field {
 
 .click-in {
 	visibility: hidden;
+	opacity: 0;
+	transition: opacity 400ms;
 }
 
 .show {
 	visibility: visible;
+	opacity: 1;
+}
+
+.no-display {
+	display: none;
+}
+
+a, a:visited {
+	color: var(--bluish);
 }
 
 ul {
 	list-style: square inside;
+}
+li {
+	margin-bottom: 2px;
 }
 li ul {
 	list-style: circle inside;
@@ -105,22 +140,54 @@ li ul {
 pre {
 	display: inline-block;
 	background-color: var(--yellowish);
-	color: black;
+	color: var(--dark);
 	border: 2px solid var(--reddish);
-	border-radius: 4px;
+	border-radius: 0.2em;
+
+	font-family: 'Roboto Mono', monospace;
 }
 
-.mono {
-	font-family: 'Roboto Mono', monospace;
+.font-09em {
 	font-size: 0.9em;
 }
+.font-08em {
+	font-size: 0.8em;
+}
+
+#bright-icon {
+	position: absolute;
+	width: 5vmin;
+	height: 5vmin;
+	max-width: 35px;
+	max-height: 35px;
+	top: 5px;
+	right: 5px;
+}
+#bright-icon path {
+	pointer-events: none;
+}
+
+#bright-icon { opacity: 0.4 }
+#bright-icon:hover { opacity: 0.6 }
+
+#bright:checked ~ #bright-icon { opacity: 0.75 }
+#bright:checked ~ #bright-icon:hover { opacity: 1 }
 		</style>
 
 	</head>
 	<body>
+		<input id=bright type=checkbox class=no-display>
+		<div id=bright-icon>
+			<label for=bright>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 no-advance">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+				</svg>
+			</label>
+		</div>
+
 
 		<slide id="title" class="show">
-			<h1>What's in a Float?</h1>
+			<h1>What's in a <pre class=font-09em>Float</pre>?</h1>
 		</slide>
 
 		<slide id="intro">
@@ -134,7 +201,7 @@ pre {
 			<h2>Quiz</h2>
 			<ul>
 				<li class="click-in">What's a floating point number?</li>
-				<li class="click-in">What's the result of <pre class=mono>0.1 + 0.2 == 0.3</pre>?</li>
+				<li class="click-in">What's the result of <pre class=font-09em>0.1 + 0.2 == 0.3</pre>?</li>
 				<li class="click-in">Again, what's a floating point number?</li>
 			</ul>
 		</slide>
@@ -151,13 +218,19 @@ pre {
 			<ul>
 				<li class="click-in">Most common standard: IEEE 754</li>
 				<li class="click-in">Definition:</li>
-				<li class="click-in">Special values:</li>
+				<li class="click-in">Special values:
+					<ul class=font-08em>
+						<li><pre>-0</pre></li>
+						<li><pre>NaN</pre>, <pre>-NaN</pre></li>
+						<li><pre>Infinity</pre>, <pre>-Infinity</pre></li>
+					</ul>
+				</li>
 			</ul>
 		</slide>
 
 		<slide id="deeper">
 			<h2>Looking Deeper</h2>
-			<div id=inspector>
+			<div id=inspector class=click-in>
 				<form id=inspector-form action="#">
 					<label for=inspector-input class=no-advance>Value:</label>
 					<input id=inspector-input type=text class=no-advance value=0>
@@ -410,10 +483,15 @@ pre {
 					const style = document.createElement("style");
 					style.textContent = `
 .root {
-	display: block;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	width: 100%;
-	border: 1px solid black;
+
 	font-family: 'Roboto Mono', monospace;
+
+	border: 1px solid var(--fg-color);
+	padding: 5px;
 }
 
 .section {
@@ -438,7 +516,7 @@ pre {
 }
 
 .significand-bits {
-	background-color: var(--bluish);
+	background-color: var(--dark-orange);
 }
 `;
 
