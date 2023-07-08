@@ -154,6 +154,8 @@ pre {
 	font-size: 0.8em;
 }
 
+.w22ch { width: 22ch }
+
 #bright-icon {
 	position: absolute;
 	width: 5vmin;
@@ -233,7 +235,7 @@ pre {
 			<div id=inspector class=click-in>
 				<form id=inspector-form action="#">
 					<label for=inspector-input class=no-advance>Value:</label>
-					<input id=inspector-input type=text class=no-advance value=0>
+					<input id=inspector-input type=text class="w22ch no-advance" value=0>
 				</form>
 				<bit-field id=inspector-bits
 					data-sign-bits=1
@@ -441,14 +443,18 @@ pre {
 						? parseInt(this.getAttribute('data-significand-bits'), 10)
 						: 1;
 
-					function makeSection(className, numBits) {
-						const div = document.createElement('div');
-						div.classList.add('section', className);
+					function makeSection(className, numBits, numSpacers, description) {
+						const section = document.createElement('div');
+						section.classList.add('section', className);
+
+						const bits = document.createElement('div');
+						bits.classList.add('row', 'bits');
+						section.append(bits);
 						for (let i=0; i<numBits; ++i) {
 							const input = document.createElement('a');
 							input.classList.add('bit');
 							input.textContent = '0';
-							div.appendChild(input);
+							bits.append(input);
 
 							input.addEventListener('click', function(evt) {
 								evt.preventDefault();
@@ -470,12 +476,28 @@ pre {
 								self.dispatchEvent(customEvent);
 							});
 						}
-						return div;
+
+						for (let i=0; i<numSpacers; ++i) {
+							const spacer = document.createElement('div');
+							spacer.classList.add('row', 'spacer');
+							section.append(spacer);
+						}
+
+						const descWrapper = document.createElement('div');
+						descWrapper.classList.add('desc-wrapper');
+						section.append(descWrapper);
+
+						const desc = document.createElement('div');
+						desc.classList.add('desc');
+						desc.textContent = description;
+						descWrapper.append(desc);
+
+						return section;
 					}
 
-					const signDiv = makeSection('sign-bits', numSignBits);
-					const exponentDiv = makeSection('exponent-bits', numExponentBits);
-					const significandDiv = makeSection('significand-bits', numSignificandBits);
+					const signDiv = makeSection('sign-bits', numSignBits, 1, 'Sign');
+					const exponentDiv = makeSection('exponent-bits', numExponentBits, 5, 'Exponent');
+					const significandDiv = makeSection('significand-bits', numSignificandBits, 1, 'Significand');
 
 					root.append(signDiv, exponentDiv, significandDiv);
 
@@ -483,8 +505,10 @@ pre {
 					const style = document.createElement("style");
 					style.textContent = `
 .root {
+	box-sizing: border-box;
+
 	display: flex;
-	align-items: center;
+	align-items: top;
 	justify-content: center;
 	width: 100%;
 
@@ -495,6 +519,13 @@ pre {
 }
 
 .section {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0;
+}
+
+.row {
 	display: inline-flex;
 	align-items: center;
 
@@ -507,15 +538,41 @@ pre {
 	font-size: 0.7em;
 }
 
-.sign-bits {
+.spacer {
+	width: 2px;
+	height: 0.2em;
+	padding: 0;
+	margin: 0;
+	border-radius: 0;
+	transform: translateX(-50%);
+}
+
+.desc-wrapper {
+	width: 2px;
+	text-align: center;
+	overflow-x: show;
+}
+
+.desc {
+	width: max-content;
+	line-height: 0.9em;
+	padding: 2px;
+	font-size: 0.5em;
+
+	border: 1px transparent solid;
+	border-radius: 2px;
+	transform: translateX(-50%);
+}
+
+.sign-bits .row, .sign-bits .desc {
 	background-color: var(--reddish);
 }
 
-.exponent-bits {
+.exponent-bits .row, .exponent-bits .desc {
 	background-color: var(--greenish);
 }
 
-.significand-bits {
+.significand-bits .row, .significand-bits .desc {
 	background-color: var(--dark-orange);
 }
 `;
