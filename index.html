@@ -51,7 +51,9 @@ html, body {
 	background-color: var(--bg-color);
 }
 
-#bright:checked ~ section, #bright:checked ~ #background {
+#bright:checked ~ section,
+#bright:checked ~ #background,
+#bright:checked ~ #bright-icon {
 	--bg-color: var(--light-grey);
 	--fg-color: var(--dark);
 	color: var(--fg-color);
@@ -183,10 +185,7 @@ pre {
 }
 
 #bright-icon { opacity: 0.4 }
-#bright-icon:hover { opacity: 0.6 }
-
-#bright:checked ~ #bright-icon { opacity: 0.75 }
-#bright:checked ~ #bright-icon:hover { opacity: 1 }
+#bright-icon:hover { opacity: 0.75 }
 		</style>
 
 	</head>
