@@ -22,6 +22,7 @@
 	--reddish: #d9626b;
 	--dark-red: #c24b6e;
 	--maroon: #a73169;
+	--light-grey: #eaeaea;
 }
 
 * {
@@ -46,7 +47,7 @@ html, body {
 }
 
 body:has(#bright:checked) {
-	--bg-color: white;
+	--bg-color: var(--light-grey);
 	--fg-color: var(--dark);
 	color: var(--fg-color);
 	background-color: var(--bg-color);
@@ -102,6 +103,13 @@ input[type='text'] {
 	font-family: 'Roboto Mono', monospace;
 }
 
+input[type='text']:focus {
+	background-color: var(--dark-green);
+}
+body:has(#bright:checked) input[type='text']:focus {
+	background-color: var(--yellowish);
+}
+
 bit-field {
 	display: block;
 	width: 100%;
@@ -118,23 +126,22 @@ bit-field {
 	opacity: 1;
 }
 
-.no-display {
-	display: none;
-}
+.no-display { display: none }
 
 a, a:visited {
 	color: var(--bluish);
 }
 
 ul {
-	list-style: square inside;
+	list-style: square outside;
+	margin-left: 0;
+	padding-left: 2ch;
 }
-li {
-	margin-bottom: 2px;
+li + * {
+	margin-top: 0.2em;
 }
 li ul {
-	list-style: circle inside;
-	margin-left: 1em;
+	list-style: circle outside;
 }
 
 pre {
@@ -147,12 +154,13 @@ pre {
 	font-family: 'Roboto Mono', monospace;
 }
 
-.font-09em {
-	font-size: 0.9em;
-}
-.font-08em {
-	font-size: 0.8em;
-}
+.float-right { float: right }
+
+.font-09em { font-size: 0.9em }
+.font-08em { font-size: 0.8em }
+
+.green { color: var(--greenish) }
+.red { color: var(--reddish) }
 
 .w22ch { width: 22ch }
 
@@ -172,8 +180,8 @@ pre {
 #bright-icon { opacity: 0.4 }
 #bright-icon:hover { opacity: 0.6 }
 
-#bright:checked ~ #bright-icon { opacity: 0.75 }
-#bright:checked ~ #bright-icon:hover { opacity: 1 }
+body:has(#bright:checked) #bright-icon { opacity: 0.75 }
+body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 		</style>
 
 	</head>
@@ -189,22 +197,42 @@ pre {
 
 
 		<slide id="title" class="show">
-			<h1>What's in a <pre class=font-09em>Float</pre>?</h1>
+			<h1>What's in a <span class=red>Float</span>?</h1>
+		</slide>
+
+		<slide id="quiz">
+			<h2>Quiz</h2>
+			<p class="click-in">Open up the Dev Console.</p>
+			<p class="click-in">Evaluate the following expressions:</p>
+			<ul>
+				<li class="click-in">
+					<pre class=font-09em>0.5 + 0.5 == 1</pre>?
+					<span class="click-in float-right"><pre class="font-09em green">✓ True</pre></span>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.5 + 0.125 == 0.625</pre>?
+					<span class="click-in float-right"><pre class="font-09em green">✓ True</pre></span>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.1 + 0.2 == 0.3</pre>?
+					<span class="click-in float-right"><pre class="font-09em red">✗ False</pre></span>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>1612850010110005199 + 1</pre>?<br>
+					<span class="click-in"><pre class="font-09em green">1612850010110005200</pre></span>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>1612850010110005200 + 1</pre>?<br>
+					<span class="click-in"><pre class="font-09em red">1612850010110005200</pre></span>
+				</li>
+			</ul>
 		</slide>
 
 		<slide id="intro">
 			<h2>Background</h2>
 			<ul>
-				<li class="click-in">Floating point calculations are commonly used, but do we know where the pitfalls are?</li>
-			</ul>
-		</slide>
-
-		<slide id="quiz">
-			<h2>Quiz</h2>
-			<ul>
 				<li class="click-in">What's a floating point number?</li>
-				<li class="click-in">What's the result of <pre class=font-09em>0.1 + 0.2 == 0.3</pre>?</li>
-				<li class="click-in">Again, what's a floating point number?</li>
+				<li class="click-in">What are the pitfalls of floating point numbers?</li>
 			</ul>
 		</slide>
 
@@ -496,7 +524,7 @@ pre {
 					}
 
 					const signDiv = makeSection('sign-bits', numSignBits, 1, 'Sign');
-					const exponentDiv = makeSection('exponent-bits', numExponentBits, 5, 'Exponent');
+					const exponentDiv = makeSection('exponent-bits', numExponentBits, 6, 'Exponent');
 					const significandDiv = makeSection('significand-bits', numSignificandBits, 1, 'Significand');
 
 					root.append(signDiv, exponentDiv, significandDiv);
@@ -529,13 +557,13 @@ pre {
 	display: inline-flex;
 	align-items: center;
 
-	line-height: 0.9em;
+	line-height: 1em;
 	margin-right: 5px;
 	padding: 1px;
 	border: 1px transparent solid;
 	border-radius: 2px;
 
-	font-size: 0.7em;
+	font-size: 0.9em;
 }
 
 .spacer {
@@ -555,13 +583,17 @@ pre {
 
 .desc {
 	width: max-content;
-	line-height: 0.9em;
+	line-height: 1em;
 	padding: 2px;
-	font-size: 0.5em;
+	font-size: 0.8em;
 
 	border: 1px transparent solid;
 	border-radius: 2px;
 	transform: translateX(-50%);
+}
+
+.sign-bits .desc {
+	transform: translateX(-20%);
 }
 
 .sign-bits .row, .sign-bits .desc {
