@@ -40,20 +40,25 @@ html, body {
 	--bg-color: var(--dark);
 	--fg-color: white;
 	color: var(--fg-color);
-	background-color: var(--bg-color);
 	text-align: center;
 
 	font-family: 'Lato', sans-serif;
 }
 
-body:has(#bright:checked) {
+#background {
+	width: 100%;
+	height: 100%;
+	background-color: var(--bg-color);
+}
+
+#bright:checked ~ section, #bright:checked ~ #background {
 	--bg-color: var(--light-grey);
 	--fg-color: var(--dark);
 	color: var(--fg-color);
 	background-color: var(--bg-color);
 }
 
-slide {
+section {
 	display: block;
 	position: absolute;
 	width: 100vmin;
@@ -84,7 +89,7 @@ slide {
 	font-size: 2em;
 }
 
-slide h2 {
+section h2 {
 	padding-bottom: 0.5em;
 	font-size: 1.5em;
 }
@@ -106,7 +111,7 @@ input[type='text'] {
 input[type='text']:focus {
 	background-color: var(--dark-green);
 }
-body:has(#bright:checked) input[type='text']:focus {
+#bright:checked ~ section input[type='text']:focus {
 	background-color: var(--yellowish);
 }
 
@@ -180,13 +185,14 @@ pre {
 #bright-icon { opacity: 0.4 }
 #bright-icon:hover { opacity: 0.6 }
 
-body:has(#bright:checked) #bright-icon { opacity: 0.75 }
-body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
+#bright:checked ~ #bright-icon { opacity: 0.75 }
+#bright:checked ~ #bright-icon:hover { opacity: 1 }
 		</style>
 
 	</head>
 	<body>
 		<input id=bright type=checkbox class=no-display>
+		<div id=background></div>
 		<div id=bright-icon>
 			<label for=bright>
 				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 no-advance">
@@ -196,11 +202,11 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 		</div>
 
 
-		<slide id="title" class="show">
+		<section id="title" class="show">
 			<h1>What's in a <span class=red>Float</span>?</h1>
-		</slide>
+		</section>
 
-		<slide id="quiz">
+		<section id="quiz">
 			<h2>Quiz</h2>
 			<p class="click-in">Open up the Dev Console.</p>
 			<p class="click-in">Evaluate the following expressions:</p>
@@ -226,24 +232,24 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 					<span class="click-in"><pre class="font-09em red">1612850010110005200</pre></span>
 				</li>
 			</ul>
-		</slide>
+		</section>
 
-		<slide id="intro">
+		<section id="intro">
 			<h2>Background</h2>
 			<ul>
 				<li class="click-in">What's a floating point number?</li>
-				<li class="click-in">What are the pitfalls of floating point numbers?</li>
+				<li class="click-in">What are the pitfalls of using floating point numbers?</li>
 			</ul>
-		</slide>
+		</section>
 
-		<slide id="fixedpt">
+		<section id="fixedpt">
 			<h2>Fixed Point</h2>
 			<ul>
 				<li class="click-in">Finite precision</li>
 			</ul>
-		</slide>
+		</section>
 
-		<slide id="floatingpt">
+		<section id="floatingpt">
 			<h2>Floating Point</h2>
 			<ul>
 				<li class="click-in">Most common standard: IEEE 754</li>
@@ -256,11 +262,12 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 					</ul>
 				</li>
 			</ul>
-		</slide>
+		</section>
 
-		<slide id="deeper">
+		<section id="deeper">
 			<h2>Looking Deeper</h2>
 			<div id=inspector class=click-in>
+				<p>What's in a 32-bit float?</p>
 				<form id=inspector-form action="#">
 					<label for=inspector-input class=no-advance>Value:</label>
 					<input id=inspector-input type=text class="w22ch no-advance" value=0>
@@ -297,16 +304,16 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 						});
 				</script>
 			</div>
-		</slide>
+		</section>
 
-		<slide id="takeaway">
+		<section id="takeaway">
 			<h2>Key takeaways</h2>
 			<ul>
 				<li class="click-in">Finite precision</li>
 			</ul>
-		</slide>
+		</section>
 
-		<slide id="fin">
+		<section id="fin">
 			<h2>Fin.</h2>
 			<ul>
 				<li>References
@@ -324,11 +331,11 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 					</ul>
 				</li>
 			</ul>
-		</slide>
+		</section>
 
 		<script>
 			const slides = Array.from(
-				document.querySelectorAll('slide').values()
+				document.querySelectorAll('section').values()
 			).map((elt) => elt.id);
 
 			let currentSlideIdx = 0;
@@ -339,7 +346,7 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 			 */
 			function goToSlide(slideId, showAll) {
 				currentSlideIdx = Math.max(0, slides.indexOf(slideId));
-				document.querySelectorAll('slide').forEach((elt, idx) => {
+				document.querySelectorAll('section').forEach((elt, idx) => {
 					if (idx <= currentSlideIdx) {
 						elt.classList.add('show');
 					} else {
@@ -359,7 +366,7 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 
 			function goToNext() {
 				// check that we've gone through all items on this slide
-				const slide = document.querySelectorAll('slide')[currentSlideIdx];
+				const slide = document.querySelectorAll('section')[currentSlideIdx];
 				const allItems = slide.querySelectorAll('.click-in');
 				const shownItems = slide.querySelectorAll('.click-in.show');
 				if (shownItems.length < allItems.length) {
@@ -382,7 +389,7 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 
 			function goToPrev() {
 				// check that we still have some items to clear out
-				const slide = document.querySelectorAll('slide')[currentSlideIdx];
+				const slide = document.querySelectorAll('section')[currentSlideIdx];
 				const allItems = slide.querySelectorAll('.click-in');
 				const shownItems = slide.querySelectorAll('.click-in.show');
 				if (shownItems.length > 0) {
@@ -475,6 +482,7 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 						const section = document.createElement('div');
 						section.classList.add('section', className);
 
+						// create the bits of this section
 						const bits = document.createElement('div');
 						bits.classList.add('row', 'bits');
 						section.append(bits);
@@ -505,12 +513,15 @@ body:has(#bright:checked) #bright-icon:hover { opacity: 1 }
 							});
 						}
 
+						// draw extension lines down to description box
 						for (let i=0; i<numSpacers; ++i) {
 							const spacer = document.createElement('div');
 							spacer.classList.add('row', 'spacer');
 							section.append(spacer);
 						}
 
+						// description box (with a hacky wrapper around to have
+						// it not take up more space than the bits section)
 						const descWrapper = document.createElement('div');
 						descWrapper.classList.add('desc-wrapper');
 						section.append(descWrapper);
