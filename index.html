@@ -161,15 +161,19 @@ pre {
 	font-family: 'Roboto Mono', monospace;
 }
 
+.center { text-align: center }
+
 .float-right { float: right }
 
 .font-09em { font-size: 0.9em }
 .font-08em { font-size: 0.8em }
 
-.green { color: var(--greenish) }
+.margin-bottom-1em { margin-bottom: 1em }
+
+.green { color: var(--dark-green) }
 .red { color: var(--reddish) }
 
-.w22ch { width: 22ch }
+.w24ch { width: 24ch }
 
 #bright-icon {
 	position: absolute;
@@ -207,8 +211,7 @@ pre {
 
 		<section id="quiz">
 			<h2>Quiz</h2>
-			<p class="click-in">Open up the Dev Console.</p>
-			<p class="click-in">Evaluate the following expressions:</p>
+			<p class="click-in">Evaluate the following JS expressions:<br><small>(you can try this in the dev console)</small></p>
 			<ul>
 				<li class="click-in">
 					<pre class=font-09em>0.5 + 0.5 == 1</pre>?
@@ -266,10 +269,10 @@ pre {
 		<section id="deeper">
 			<h2>Looking Deeper</h2>
 			<div id=inspector class=click-in>
-				<p>What's in a 32-bit float?</p>
-				<form id=inspector-form action="#">
+				<p class=margin-bottom-1em>What's in a 32-bit float?</p>
+				<form id=inspector-form action="#" class="center">
 					<label for=inspector-input class=no-advance>Value:</label>
-					<input id=inspector-input type=text class="w22ch no-advance" value=0>
+					<input id=inspector-input type=text class="w24ch no-advance" value=0>
 				</form>
 				<bit-field id=inspector-bits
 					data-sign-bits=1
@@ -465,19 +468,7 @@ pre {
 					const root = document.createElement('div');
 					root.classList.add('root');
 
-					const numSignBits = this.hasAttribute('data-sign-bits')
-						? parseInt(this.getAttribute('data-sign-bits'), 10)
-						: 1;
-
-					const numExponentBits = this.hasAttribute('data-exponent-bits')
-						? parseInt(this.getAttribute('data-exponent-bits'), 10)
-						: 1;
-
-					const numSignificandBits = this.hasAttribute('data-significand-bits')
-						? parseInt(this.getAttribute('data-significand-bits'), 10)
-						: 1;
-
-					function makeSection(className, numBits, numSpacers, description) {
+					function makeSection(className, numBits, numSpacers) {
 						const section = document.createElement('div');
 						section.classList.add('section', className);
 
@@ -501,6 +492,7 @@ pre {
 								}
 
 								const newFloat = self.reverseBits();
+								self.onBitsChanged();
 
 								// update input by custom event
 								const customEvent = new CustomEvent('valueUpdate', {
@@ -527,15 +519,32 @@ pre {
 
 						const desc = document.createElement('div');
 						desc.classList.add('desc');
-						desc.textContent = description;
 						descWrapper.append(desc);
 
 						return section;
 					}
 
-					const signDiv = makeSection('sign-bits', numSignBits, 1, 'Sign');
-					const exponentDiv = makeSection('exponent-bits', numExponentBits, 6, 'Exponent');
-					const significandDiv = makeSection('significand-bits', numSignificandBits, 1, 'Significand');
+					function getBits(attributeName) {
+						return self.hasAttribute(attributeName)
+							? parseInt(self.getAttribute(attributeName), 10)
+							: 1;
+					}
+
+					const signDiv = makeSection(
+						'sign-bits',
+						getBits('data-sign-bits'),
+						1
+					);
+					const exponentDiv = makeSection(
+						'exponent-bits',
+						getBits('data-exponent-bits'),
+						9
+					);
+					const significandDiv = makeSection(
+						'significand-bits',
+						getBits('data-significand-bits'),
+						1
+					);
 
 					root.append(signDiv, exponentDiv, significandDiv);
 
@@ -571,7 +580,7 @@ pre {
 	margin-right: 5px;
 	padding: 1px;
 	border: 1px transparent solid;
-	border-radius: 2px;
+	border-radius: 0.125em;
 
 	font-size: 0.9em;
 }
@@ -595,11 +604,16 @@ pre {
 	width: max-content;
 	line-height: 1em;
 	padding: 2px;
-	font-size: 0.8em;
+	font-size: 0.6em;
 
+	white-space: pre;
 	border: 1px transparent solid;
-	border-radius: 2px;
+	border-radius: 0.125em;
 	transform: translateX(-50%);
+}
+
+.desc::first-line {
+	font-size: 0.7em;
 }
 
 .sign-bits .desc {
@@ -617,9 +631,22 @@ pre {
 .significand-bits .row, .significand-bits .desc {
 	background-color: var(--dark-orange);
 }
+
+sup {
+	position: relative;
+	top: -0.2em;
+	font-size: 0.6em;
+}
+
+sub {
+	font-size: 0.5em;
+}
 `;
 
 					shadow.append(style, root);
+
+					// force an update
+					this.onBitsChanged();
 				}
 
 				static get observedAttributes() {
@@ -637,21 +664,20 @@ pre {
 
 				replaceBits(v) {
 					this.float32Array[0] = v;
-					const bits = Array.from(this.shadowRoot.querySelectorAll('.bit'))
+
+					// get the bits (taking into account endian-ness, and fill the display)
+
+					const bitElts = Array.from(this.shadowRoot.querySelectorAll('.bit'))
 						.reverse();
-					if (bits.length == 0) {
-						return;
+					if (bitElts.length == 0) {
+						return; // skip if we don't have the DOM yet
 					}
 
-					let bitIdx = 0;
-					for (let b of this.byteView) {
-						for (let i = 0; i < 8; ++i) {
-							const bitValue = b & 1;
-							bits[bitIdx].textContent = bitValue.toString();
-							b = b >> 1;
-							++bitIdx;
-						}
-					}
+					const bits = Array.from(this.byteView)
+						.map(b => b.toString(2).padStart(8, '0').split('').reverse().join(''))
+						.join('');
+
+					bitElts.forEach((elt, idx) => elt.textContent = bits.charAt(idx));
 
 					const newFloat = this.reverseBits();
 					// update input by custom event
@@ -664,27 +690,102 @@ pre {
 				}
 
 				reverseBits() {
-					const bits = Array.from(this.shadowRoot.querySelectorAll('.bit'));
-					if (bits.length == 0) {
+					// convert the displayed bits back to a floating point number
+					const bitElts = Array.from(this.shadowRoot.querySelectorAll('.bit'))
+						.reverse(); // want bits from least significant to most
+					if (bitElts.length == 0) {
 						return;
 					}
 
-					let bitIdx = 0;
-					for (let byteIdx = this.byteView.byteLength - 1; byteIdx >= 0; --byteIdx) {
-						let byteValue = 0;
-						for (let i=0; i<8; ++i) {
-							const bitText = bits[bitIdx].textContent;
-							const bitValue = bitText == '1' ? 1 : 0;
-							byteValue = byteValue | bitValue;
-							if (i < 7) {
-								byteValue = byteValue << 1;
-							}
-							++bitIdx;
-						}
-						this.byteView[byteIdx] = byteValue;
-					}
+					// byteView stores float in little-endian order
+					this.byteView.forEach((_b, idx, byteView) => {
+						const start = idx * 8;
+						byteView[idx] = parseInt(
+							bitElts.slice(start, start + 8)
+								.reverse()
+								.map(elt => elt.textContent)
+								.join(''),
+							2
+						);
+					});
 
 					return this.float32Array[0];
+				}
+
+				onBitsChanged() {
+					const sectionBits = ['.sign-bits', '.exponent-bits', '.significand-bits']
+						.map(name =>
+							Array.from(this.shadowRoot.querySelectorAll(name + ' .bit'))
+								.map(elt => elt.textContent == '1' ? 1 : 0)
+						);
+					this.onSignBitsChange(...sectionBits);
+					this.onExponentBitsChange(...sectionBits);
+					this.onSignificandBitsChange(...sectionBits);
+				}
+
+				onSignBitsChange(signBits, exponentBits, significandBits) {
+					this.shadowRoot.querySelector('.sign-bits .desc').textContent =
+						'Sign\n' + (signBits[0] == 0 ? '+1' : '-1');
+				}
+
+				onExponentBitsChange(signBits, exponentBits, significandBits) {
+					const nan = exponentBits.every(b => b == 1)
+						&& !significandBits.every(b => b == 0);
+
+					const subnormal = exponentBits.every(b => b == 0);
+
+					const descElt = this.shadowRoot.querySelector('.exponent-bits .desc');
+					if (nan) {
+						descElt.innerHTML = `Exponent<br>-`;
+					} else if (subnormal) {
+						// subnormal numbers
+						// 0.significand
+						// bias adjusted
+						const bias = Math.pow(2, exponentBits.length - 1) - 2;
+						const biasBase2 = bias.toString(2).padStart(exponentBits.length, '0');
+						const value = exponentBits.reduce((a, b) => (a << 1) | b, 0);
+						const valueBase2 = exponentBits.map(b => b.toString()).join('');
+
+						descElt.innerHTML =
+							`Exponent<br>2<sup>${valueBase2}<sub>2</sub> - ${biasBase2}<sub>2</sub></sup><br>= 2<sup>${value} - ${bias}</sup> = 2<sup>${value-bias}</sup>`;
+					} else {
+						// normalized floating point
+						// 1.significand
+						const bias = Math.pow(2, exponentBits.length - 1) - 1;
+						const biasBase2 = bias.toString(2).padStart(exponentBits.length, '0');
+						const value = exponentBits.reduce((a, b) => (a << 1) | b, 0);
+						const valueBase2 = exponentBits.map(b => b.toString()).join('');
+
+						descElt.innerHTML =
+							`Exponent<br>2<sup>${valueBase2}<sub>2</sub> - ${biasBase2}<sub>2</sub></sup><br>= 2<sup>${value} - ${bias}</sup> = 2<sup>${value-bias}</sup>`;
+					}
+				}
+
+				onSignificandBitsChange(signBits, exponentBits, significandBits) {
+					const nan = exponentBits.every(b => b == 1)
+						&& !significandBits.every(b => b == 0);
+
+					const subnormal = exponentBits.every(b => b == 0);
+
+					// use BigInts to handle full representation of the floating point values
+					const numDigits = 23; //HACK: only works for 23-bit significand
+					const smallestBit = BigInt('11920928955078125'); //HACK: only works for 23-bit significand
+
+					const value = [...significandBits]
+						.reverse()
+						.reduce((a, b, idx) => a + (BigInt(b) * smallestBit * (2n ** BigInt(idx))), 0n)
+						.toString()
+						.padStart(numDigits, '0');
+					const valueBase2 = significandBits.map(b => b.toString()).join('');
+
+					const descElt = this.shadowRoot.querySelector('.significand-bits .desc');
+					if (subnormal) {
+						descElt.innerHTML =
+							`Significand<br>0.${valueBase2}<sub>2</sub><br>= 0.${value}`;
+					} else {
+						descElt.innerHTML =
+							`Significand<br>1.${valueBase2}<sub>2</sub><br>= 1.${value}`;
+					}
 				}
 			}
 
