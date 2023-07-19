@@ -39,6 +39,7 @@ html, body {
 
 	--bg-color: var(--dark);
 	--fg-color: white;
+	--emphasis-color: var(--light-green);
 	color: var(--fg-color);
 	text-align: center;
 
@@ -49,15 +50,22 @@ html, body {
 	width: 100%;
 	height: 100%;
 	background-color: var(--bg-color);
+
+	transition: background-color 350ms linear;
 }
 
 #bright:checked ~ section,
-#bright:checked ~ #background,
+#bright:checked ~ #background {
+	--bg-color: var(--light-grey);
+	--fg-color: var(--dark);
+	--emphasis-color: var(--dark-red);
+	color: var(--fg-color);
+	background-color: var(--bg-color);
+}
 #bright:checked ~ #bright-icon {
 	--bg-color: var(--light-grey);
 	--fg-color: var(--dark);
 	color: var(--fg-color);
-	background-color: var(--bg-color);
 }
 
 section {
@@ -77,7 +85,7 @@ section {
 
 	visibility: hidden;
 	opacity: 0;
-	transition: opacity 350ms;
+	transition: opacity 350ms, background-color 350ms linear;
 }
 
 #title h1 {
@@ -133,10 +141,30 @@ bit-field {
 	opacity: 1;
 }
 
+.click-in.slide-width {
+	visibility: visible;
+	opacity: 1;
+	transition: max-width 400ms ease-out;
+
+	display: inline-block;
+	overflow: hidden;
+	vertical-align: top; /* HACK: 'overflow:hidden' somehow causes it to align differently */
+
+	max-width: 0;
+}
+
+.click-in.slide-width.show {
+	/* HACK: unable to transition to auto width, so use a fixed max-width instead */
+	max-width: 20ch;
+}
+
 .no-display { display: none }
 
 a, a:visited {
-	color: var(--bluish);
+	color: var(--emphasis-color);
+}
+a:hover {
+	opacity: 0.9;
 }
 
 ul {
@@ -161,6 +189,12 @@ pre {
 	font-family: 'Roboto Mono', monospace;
 }
 
+sub {
+	font-size: 0.6em;
+}
+
+.emphasis { color: var(--emphasis-color) }
+
 .center { text-align: center }
 
 .float-right { float: right }
@@ -169,6 +203,7 @@ pre {
 .font-08em { font-size: 0.8em }
 
 .margin-bottom-1em { margin-bottom: 1em }
+.margin-right-8em { margin-bottom: 8em }
 
 .green { color: var(--dark-green) }
 .red { color: var(--reddish) }
@@ -239,23 +274,106 @@ pre {
 		<section id="intro">
 			<h2>Background</h2>
 			<ul>
-				<li class="click-in">What's a floating point number?</li>
-				<li class="click-in">What are the pitfalls of using floating point numbers?</li>
+				<li class="click-in">What's a <span class=emphasis>floating point number</span>?</li>
+				<li class="click-in">What are the <span class=emphasis>pitfalls</span> of using floating point numbers?</li>
+			</ul>
+		</section>
+
+		<section id="primer">
+			<h2>Primer</h2>
+			<p class="click-in">What's the <span class=emphasis>base-2</span> representation of these numbers?</p>
+			<ul>
+				<li class="click-in">
+					<pre class=font-09em>0 = <span class="click-in slide-width green">0<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>1 = <span class="click-in slide-width green">1<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>2 = <span class="click-in slide-width green">10<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>4 = <span class="click-in slide-width green">100<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>10 = <span class="click-in slide-width green">1010<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.5 = <span class="click-in slide-width red">???</span></pre>
+				</li>
+			</ul>
+		</section>
+
+		<section id="binarypt">
+			<h2>What about non-integers?</h2>
+			<ul>
+				<li class="click-in">Mathematically, represented the same way as decimals</li>
+				<li class="click-in">
+					<pre class=font-09em>0.5 = <span class="click-in slide-width green">0.1<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.25 = <span class="click-in slide-width green">0.01<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.125 = <span class="click-in slide-width green">0.001<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.75 = <span class="click-in slide-width green">0.11<sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.3 = <span class="click-in slide-width green">0.01<span class=red>001100110011</span>...<sub>2</sub></span></pre>
+				</li>
 			</ul>
 		</section>
 
 		<section id="fixedpt">
-			<h2>Fixed Point</h2>
+			<h2>How does that work in computers?</h2>
 			<ul>
-				<li class="click-in">Finite precision</li>
+				<li class="click-in">One way: <span class=emphasis>fixed point representation</span></li>
+				<li class="click-in">Choose a position for the zero point</li>
+				<li class="click-in">Keep it the same everywhere</li>
+				<li class="click-in">E.g. if we have 16-bit values, we can choose to split at the middle</li>
+				<li class="click-in">
+					<pre class=font-09em><span class=green>xxxxxxxx</span>.<span class=red>yyyyyyyy</span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em>0.5 = <span class="click-in slide-width"><span class=green>00000000</span>.<span class=red>10000000</span><sub>2</sub></span></pre>
+				</li>
+				<li class="click-in">
+					<pre class=font-09em><span class=green>11111111</span>.<span class=red>11111111</span><sub>2</sub> = <span class="click-in slide-width">255.99609375</span></pre>
+				</li>
+			</ul>
+		</section>
+
+		<section id="fixedpt2">
+			<h2>Fixed point representation</h2>
+			<ul>
+				<li class="click-in">Pros
+					<ul>
+						<li class="click-in">Addition and subtraction are easy</li>
+						<li class="click-in">Multiplication and division require only an adjusting factor</li>
+					</ul>
+				</li>
+				<li class="click-in">Cons
+					<ul>
+						<li class="click-in">Limited range</li>
+						<li class="click-in">
+							<pre class=font-09em><span class=green>11111111</span>.<span class=red>11111111</span><sub>2</sub> * </pre>
+						</li>
+					</ul>
+				</li>
 			</ul>
 		</section>
 
 		<section id="floatingpt">
 			<h2>Floating Point</h2>
 			<ul>
+				<li class="click-in">Idea:
+					<ul class=font-08em>
+						<li></li>
+					</ul>
+				</li>
 				<li class="click-in">Most common standard: IEEE 754</li>
-				<li class="click-in">Definition:</li>
 				<li class="click-in">Special values:
 					<ul class=font-08em>
 						<li><pre>-0</pre></li>
@@ -311,7 +429,24 @@ pre {
 		<section id="takeaway">
 			<h2>Key takeaways</h2>
 			<ul>
-				<li class="click-in">Finite precision</li>
+				<li class="click-in">Floats have <span class=emphasis>finite precision</span>
+					<ul class="font-08em click-in">
+						<li>Numbers with a recurring binary representation cannot be losslessly stored</li>
+						<li>(e.g. <pre>0.3 = 0.01001100110011...<sub>2</sub></pre>)</li>
+					</ul>
+				</li>
+				<li class="click-in">Use integer arithmetic if possible
+					<ul class="font-08em click-in">
+						<li>Perform calculations in the <span class=emphasis>smallest unit needed</span></li>
+						<li>(e.g. if smallest unit is $0.01, store variables in cents)</li>
+					</ul>
+				</li>
+				<li class="click-in">Don't expect equality to always work
+					<ul class="font-08em click-in">
+						<li>Compare with some leeway (aka epsilon)</li>
+						<li><pre class=font-08em>if (Math.abs(x - expected) &lt;= 0.001) { ... }</pre></li>
+					</ul>
+				</li>
 			</ul>
 		</section>
 
