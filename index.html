@@ -632,6 +632,7 @@ sub, sup {
 			class BitField extends HTMLElement {
 				constructor() {
 					super();
+					this.hasConnected = false;
 
 					this.buffer = new ArrayBuffer(Float32Array.BYTES_PER_ELEMENT);
 					this.byteView = new Uint8Array(this.buffer);
@@ -643,6 +644,7 @@ sub, sup {
 				connectedCallback() {
 					const self = this;
 					const shadow = this.shadowRoot;
+					this.hasConnected = true;
 
 					const root = document.createElement('div');
 					root.classList.add('root');
@@ -837,6 +839,8 @@ sub {
 						const newFloat = parseFloat(newValue);
 						if (!isNaN(newValue) && oldValue != newValue) {
 							this.replaceBits(newFloat);
+
+							this.onBitsChanged();
 						}
 					}
 				}
@@ -892,6 +896,11 @@ sub {
 				}
 
 				onBitsChanged() {
+					// skip update if node is not connected to DOM yet
+					if (!this.hasConnected) {
+						return;
+					}
+
 					const sectionBits = ['.sign-bits', '.exponent-bits', '.significand-bits']
 						.map(name =>
 							Array.from(this.shadowRoot.querySelectorAll(name + ' .bit'))
