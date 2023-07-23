@@ -189,7 +189,7 @@ pre {
 	font-family: 'Roboto Mono', monospace;
 }
 
-sub {
+sub, sup {
 	font-size: 0.6em;
 }
 
@@ -202,11 +202,14 @@ sub {
 .font-09em { font-size: 0.9em }
 .font-08em { font-size: 0.8em }
 
-.margin-bottom-1em { margin-bottom: 1em }
+.margin-bottom-05em { margin-bottom: 0.5em }
 .margin-right-8em { margin-bottom: 8em }
 
 .green { color: var(--dark-green) }
+.greenish { color: var(--greenish) }
 .red { color: var(--reddish) }
+.dark-red { color: var(--dark-red) }
+.maroon { color: var(--maroon) }
 
 .w24ch { width: 24ch }
 
@@ -284,19 +287,19 @@ sub {
 			<p class="click-in">What's the <span class=emphasis>base-2</span> representation of these numbers?</p>
 			<ul>
 				<li class="click-in">
-					<pre class=font-09em>0 = <span class="click-in slide-width green">0<sub>2</sub></span></pre>
+					<pre class=font-09em>0   = <span class="click-in slide-width green">0<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>1 = <span class="click-in slide-width green">1<sub>2</sub></span></pre>
+					<pre class=font-09em>1   = <span class="click-in slide-width green">1<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>2 = <span class="click-in slide-width green">10<sub>2</sub></span></pre>
+					<pre class=font-09em>2   = <span class="click-in slide-width green">10<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>4 = <span class="click-in slide-width green">100<sub>2</sub></span></pre>
+					<pre class=font-09em>4   = <span class="click-in slide-width green">100<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>10 = <span class="click-in slide-width green">1010<sub>2</sub></span></pre>
+					<pre class=font-09em>10  = <span class="click-in slide-width green">1010<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
 					<pre class=font-09em>0.5 = <span class="click-in slide-width red">???</span></pre>
@@ -307,21 +310,21 @@ sub {
 		<section id="binarypt">
 			<h2>What about non-integers?</h2>
 			<ul>
-				<li class="click-in">Mathematically, represented the same way as decimals</li>
+				<li class="click-in"><span class=emphasis>Mathematically</span>, represented the same way as decimals</li>
 				<li class="click-in">
-					<pre class=font-09em>0.5 = <span class="click-in slide-width green">0.1<sub>2</sub></span></pre>
+					<pre class=font-09em>0.5   = <span class="click-in slide-width green">0.1<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>0.25 = <span class="click-in slide-width green">0.01<sub>2</sub></span></pre>
+					<pre class=font-09em>0.25  = <span class="click-in slide-width green">0.01<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
 					<pre class=font-09em>0.125 = <span class="click-in slide-width green">0.001<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>0.75 = <span class="click-in slide-width green">0.11<sub>2</sub></span></pre>
+					<pre class=font-09em>0.75  = <span class="click-in slide-width green">0.11<sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>0.3 = <span class="click-in slide-width green">0.01<span class=red>001100110011</span>...<sub>2</sub></span></pre>
+					<pre class=font-09em>0.3   = <span class="click-in slide-width green">0.01<span class=red>001100110011</span>...<sub>2</sub></span></pre>
 				</li>
 			</ul>
 		</section>
@@ -330,17 +333,16 @@ sub {
 			<h2>How does that work in computers?</h2>
 			<ul>
 				<li class="click-in">One way: <span class=emphasis>fixed point representation</span></li>
-				<li class="click-in">Choose a position for the zero point</li>
-				<li class="click-in">Keep it the same everywhere</li>
-				<li class="click-in">E.g. if we have 16-bit values, we can choose to split at the middle</li>
+				<li class="click-in">Choose a position for the zero point (<span class=emphasis>scaling factor</span>)</li>
+				<li class="click-in">E.g. if we have 8-bit values, we can choose to split at the middle (scaling factor <span class=emphasis>1 / 16</span>)</li>
 				<li class="click-in">
-					<pre class=font-09em><span class=green>xxxxxxxx</span>.<span class=red>yyyyyyyy</span></pre>
+					<pre class=font-09em><span class=green>xxxx</span>.<span class=red>yyyy</span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em>0.5 = <span class="click-in slide-width"><span class=green>00000000</span>.<span class=red>10000000</span><sub>2</sub></span></pre>
+					<pre class=font-09em><span class=green>0</span>.<span class=red>5</span> = <span class="click-in slide-width"><span class=green>0000</span>.<span class=red>1000</span><sub>2</sub></span></pre>
 				</li>
 				<li class="click-in">
-					<pre class=font-09em><span class=green>11111111</span>.<span class=red>11111111</span><sub>2</sub> = <span class="click-in slide-width">255.99609375</span></pre>
+					<pre class=font-09em><span class=green>1111</span>.<span class=red>1111</span><sub>2</sub> = <span class="click-in slide-width"><span class=green>15</span>.<span class=red>9375</span></span></pre>
 				</li>
 			</ul>
 		</section>
@@ -350,15 +352,16 @@ sub {
 			<ul>
 				<li class="click-in">Pros
 					<ul>
-						<li class="click-in">Addition and subtraction are easy</li>
-						<li class="click-in">Multiplication and division require only an adjusting factor</li>
+						<li class="click-in"><span class=emphasis>Addition and subtraction</span> are easy</li>
+						<li class="click-in">Multiplying and dividing require only a scaling factor</li>
 					</ul>
 				</li>
 				<li class="click-in">Cons
 					<ul>
-						<li class="click-in">Limited range</li>
-						<li class="click-in">
-							<pre class=font-09em><span class=green>11111111</span>.<span class=red>11111111</span><sub>2</sub> * </pre>
+						<li class="click-in">Limited range<br>
+							(e.g. <pre class=font-09em><span class=green>0000</span>.<span class=red>0001</span><sub>2</sub> / <span class=green>0010</span>.<span class=red>0000</span><sub>2</sub></pre> <br>
+							gives
+							<pre class=font-09em><span class=green>0000</span>.<span class=red>0000</span></pre>)
 						</li>
 					</ul>
 				</li>
@@ -368,17 +371,20 @@ sub {
 		<section id="floatingpt">
 			<h2>Floating Point</h2>
 			<ul>
+				<li class="click-in"><span class=emphasis>Floating point representation</span></li>
 				<li class="click-in">Idea:
 					<ul class=font-08em>
-						<li></li>
+						<li class=click-in>Similar to <span class=emphasis>exponential notation</span></li>
+						<li class=click-in><pre class=font-09em>120.125 = 1.<span class=green>20125</span> * 10<sup class=dark-red>2</sup></pre></li>
+						<li class=click-in><pre class=font-09em>1111000.001<sub>2</sub> = 1.<span class=green>111000001</span><sub>2</sub> * 2<sup class=dark-red>6</sup></pre></li>
 					</ul>
 				</li>
-				<li class="click-in">Most common standard: IEEE 754</li>
-				<li class="click-in">Special values:
+				<li class="click-in">Most common standard: <span class=emphasis>IEEE 754</span></li>
+				<li class="click-in">Format:
 					<ul class=font-08em>
-						<li><pre>-0</pre></li>
-						<li><pre>NaN</pre>, <pre>-NaN</pre></li>
-						<li><pre>Infinity</pre>, <pre>-Infinity</pre></li>
+						<li class=click-in>A <span class=emphasis>sign</span> bit</li>
+						<li class=click-in>Some <span class=emphasis>exponent</span> bits</li>
+						<li class=click-in>Some <span class=emphasis>significand</span> (or <span class=emphasis>fractional</span>) bits</li>
 					</ul>
 				</li>
 			</ul>
@@ -387,7 +393,7 @@ sub {
 		<section id="deeper">
 			<h2>Looking Deeper</h2>
 			<div id=inspector class=click-in>
-				<p class=margin-bottom-1em>What's in a 32-bit float?</p>
+				<p class=margin-bottom-05em>What's in a 32-bit float?</p>
 				<form id=inspector-form action="#" class="center">
 					<label for=inspector-input class=no-advance>Value:</label>
 					<input id=inspector-input type=text class="w24ch no-advance" value=0>
@@ -424,6 +430,44 @@ sub {
 						});
 				</script>
 			</div>
+			<div class="click-in">Special values:
+				<ul class=font-08em>
+					<li><pre>-0</pre></li>
+					<li><pre>NaN</pre></li>
+					<li><pre>Infinity</pre>, <pre>-Infinity</pre></li>
+					<li>Subnormal numbers (exponent bits are all 0)</li>
+				</ul>
+			</div>
+		</section>
+
+		<section id="floatingptproblems">
+			<h2>Floating Point Problems</h2>
+			<p>Examples adapted from <a href="https://jvns.ca/blog/2023/01/13/examples-of-floating-point-problems/">Julia Evans' blog</a>:</p>
+			<ul>
+				<li class="click-in">The odometer that stopped
+					<ul>
+						<li class=click-in>
+							<pre class=font-08em>
+<span class=maroon>let</span> meters = <span class=green>0</span>;
+<span class=maroon>for</span> (<span class=maroon>let</span> i=<span class=green>0</span>; i<<span class=green>100000000</span>; i++) {
+    meters += <span class=green>0.01</span>;
+}</pre>
+						</li>
+						<li class=click-in><pre class=font-08em>Expected: <span class=green>1000000</span></pre></li>
+						<li class=click-in><pre class=font-08em>Actual  : <span class=red>1000000.0007792843</span></pre></li>
+					</ul>
+				</li>
+				<li class="click-in">Collision checking gone wrong
+					<ul>
+						<li class=click-in>
+							<pre class=font-08em>
+<span class=maroon>let</span> a = <span class=green>1000</span>;
+<span class=maroon>while</span> (a != <span class=green>0</span>) { a -= <span class=green>0.001</span>; }</pre>
+						</li>
+						<li class=click-in>This loop never ends!</li>
+					</ul>
+				</li>
+			</ul>
 		</section>
 
 		<section id="takeaway">
@@ -431,20 +475,20 @@ sub {
 			<ul>
 				<li class="click-in">Floats have <span class=emphasis>finite precision</span>
 					<ul class="font-08em click-in">
-						<li>Numbers with a recurring binary representation cannot be losslessly stored</li>
-						<li>(e.g. <pre>0.3 = 0.01001100110011...<sub>2</sub></pre>)</li>
+						<li>Numbers with a <span class=emphasis>recurring</span> binary representation cannot be losslessly stored</li>
+						<li>(e.g. <pre>0.3 = 0.01<span class=red>001100110011</span>...<sub>2</sub></pre>)</li>
 					</ul>
 				</li>
-				<li class="click-in">Use integer arithmetic if possible
+				<li class="click-in">Use <span class=emphasis>integer arithmetic</span> if possible
 					<ul class="font-08em click-in">
 						<li>Perform calculations in the <span class=emphasis>smallest unit needed</span></li>
-						<li>(e.g. if smallest unit is $0.01, store variables in cents)</li>
+						<li>(e.g. if smallest unit is $0.01, work in <span class=emphasis>cents</span>)</li>
 					</ul>
 				</li>
 				<li class="click-in">Don't expect equality to always work
 					<ul class="font-08em click-in">
-						<li>Compare with some leeway (aka epsilon)</li>
-						<li><pre class=font-08em>if (Math.abs(x - expected) &lt;= 0.001) { ... }</pre></li>
+						<li>Compare with <span class=emphasis>some leeway</span> (aka epsilon)</li>
+						<li><pre class=font-08em>if (<span class=green>Math.abs(x - expected) &lt;= 0.001</span>) { ... }</pre></li>
 					</ul>
 				</li>
 			</ul>
