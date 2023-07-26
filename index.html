@@ -274,10 +274,10 @@ body:fullscreen .arrows-in {
 
 		<a id=fullscreen-btn class="ui-btn-size no-display no-advance">
 			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 no-pointer-events arrows-out">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+				<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
 			</svg>
 			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 no-pointer-events arrows-in">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+				<path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
 			</svg>
 		</a>
 
@@ -683,6 +683,31 @@ body:fullscreen .arrows-in {
 
 			// now for custom element creation
 
+			// some helper functions;
+			// poor man's React / Preact's h()
+			function elementMaker(tag) {
+				/**
+				 * @param {string[]} classList
+				 * @param {string|Element[]} children
+				 */
+				return function(classList, ...children) {
+					const elt = document.createElement(tag);
+					elt.classList.add(...classList);
+					if (children.length == 1 && typeof children[0] === 'string') {
+						// if only child is a string, treat as textContent
+						elt.textContent = children[0];
+					} else {
+						elt.append(...children);
+					}
+					return elt;
+				};
+			}
+			const div = elementMaker('div');
+			const span = elementMaker('span');
+			const a = elementMaker('a');
+			const sub = elementMaker('sub');
+			const sup = elementMaker('sup');
+
 			// custom element for bit fields
 			class BitField extends HTMLElement {
 				constructor() {
@@ -701,21 +726,14 @@ body:fullscreen .arrows-in {
 					const shadow = this.shadowRoot;
 					this.hasConnected = true;
 
-					const root = document.createElement('div');
-					root.classList.add('root');
-
 					function makeSection(className, numBits, numSpacers) {
-						const section = document.createElement('div');
-						section.classList.add('section', className);
+						const section = div(['section', className]);
 
 						// create the bits of this section
-						const bits = document.createElement('div');
-						bits.classList.add('row', 'bits');
+						const bits = div(['row', 'bits']);
 						section.append(bits);
 						for (let i=0; i<numBits; ++i) {
-							const input = document.createElement('a');
-							input.classList.add('bit');
-							input.textContent = '0';
+							const input = a(['bit'], '0');
 							bits.append(input);
 
 							input.addEventListener('click', function(evt) {
@@ -742,20 +760,17 @@ body:fullscreen .arrows-in {
 
 						// draw extension lines down to description box
 						for (let i=0; i<numSpacers; ++i) {
-							const spacer = document.createElement('div');
-							spacer.classList.add('row', 'spacer');
+							const spacer = div(['row', 'spacer']);
 							section.append(spacer);
 						}
 
 						// description box (with a hacky wrapper around to have
 						// it not take up more space than the bits section)
-						const descWrapper = document.createElement('div');
-						descWrapper.classList.add('desc-wrapper');
+						const descWrapper = div(
+							['desc-wrapper'],
+							div(['desc'])
+						);
 						section.append(descWrapper);
-
-						const desc = document.createElement('div');
-						desc.classList.add('desc');
-						descWrapper.append(desc);
 
 						return section;
 					}
@@ -766,23 +781,24 @@ body:fullscreen .arrows-in {
 							: 1;
 					}
 
-					const signDiv = makeSection(
-						'sign-bits',
-						getBits('data-sign-bits'),
-						1
+					const root = div(
+						['root'],
+						makeSection(
+							'sign-bits',
+							getBits('data-sign-bits'),
+							1
+						),
+						makeSection(
+							'exponent-bits',
+							getBits('data-exponent-bits'),
+							9
+						),
+						makeSection(
+							'significand-bits',
+							getBits('data-significand-bits'),
+							1
+						)
 					);
-					const exponentDiv = makeSection(
-						'exponent-bits',
-						getBits('data-exponent-bits'),
-						9
-					);
-					const significandDiv = makeSection(
-						'significand-bits',
-						getBits('data-significand-bits'),
-						1
-					);
-
-					root.append(signDiv, exponentDiv, significandDiv);
 
 					// style the content
 					const style = document.createElement("style");
@@ -967,8 +983,11 @@ sub {
 				}
 
 				onSignBitsChange(signBits, exponentBits, significandBits) {
-					this.shadowRoot.querySelector('.sign-bits .desc').textContent =
-						'Sign\n' + (signBits[0] == 0 ? '+1' : '-1');
+					this.shadowRoot.querySelector('.sign-bits .desc').
+						replaceChildren(
+							div([], 'Sign'),
+							div([], signBits[0] == 0 ? '+1' : '-1')
+						);
 				}
 
 				onExponentBitsChange(signBits, exponentBits, significandBits) {
@@ -979,28 +998,46 @@ sub {
 
 					const descElt = this.shadowRoot.querySelector('.exponent-bits .desc');
 					if (nan) {
-						descElt.innerHTML = `Exponent<br>-`;
-					} else if (subnormal) {
-						// subnormal numbers
-						// 0.significand
-						// bias adjusted
-						const bias = Math.pow(2, exponentBits.length - 1) - 2;
-						const biasBase2 = bias.toString(2).padStart(exponentBits.length, '0');
-						const value = exponentBits.reduce((a, b) => (a << 1) | b, 0);
-						const valueBase2 = exponentBits.map(b => b.toString()).join('');
-
-						descElt.innerHTML =
-							`Exponent<br>2<sup>${valueBase2}<sub>2</sub> - ${biasBase2}<sub>2</sub></sup><br>= 2<sup>${value} - ${bias}</sup> = 2<sup>${value-bias}</sup>`;
+						descElt.replaceChildren(
+							div([], 'Exponent'),
+							div([], '-')
+						);
 					} else {
-						// normalized floating point
-						// 1.significand
-						const bias = Math.pow(2, exponentBits.length - 1) - 1;
-						const biasBase2 = bias.toString(2).padStart(exponentBits.length, '0');
+						let bias;
+						if (subnormal) {
+							// subnormal numbers
+							// 0.significand
+							// bias adjusted
+							bias = Math.pow(2, exponentBits.length - 1) - 2;
+						} else {
+							// normalized floating point
+							// 1.significand
+							bias = Math.pow(2, exponentBits.length - 1) - 1;
+						}
 						const value = exponentBits.reduce((a, b) => (a << 1) | b, 0);
+
+						const biasBase2 = bias.toString(2).padStart(exponentBits.length, '0');
 						const valueBase2 = exponentBits.map(b => b.toString()).join('');
 
-						descElt.innerHTML =
-							`Exponent<br>2<sup>${valueBase2}<sub>2</sub> - ${biasBase2}<sub>2</sub></sup><br>= 2<sup>${value} - ${bias}</sup> = 2<sup>${value-bias}</sup>`;
+
+						descElt.replaceChildren(
+							div([], 'Exponent'),
+							div([],
+								span([], '2'),
+								sup([],
+									span([], valueBase2),
+									sub([], '2'),
+									span([], ` - ${biasBase2}`),
+									sub([], '2')
+								)
+							),
+							div([],
+								span([], '= 2'),
+								sup([], `${value} - ${bias}`),
+								span([], ' = 2'),
+								sup([], `${value - bias}`)
+							)
+						);
 					}
 				}
 
@@ -1020,15 +1057,17 @@ sub {
 						.toString()
 						.padStart(numDigits, '0');
 					const valueBase2 = significandBits.map(b => b.toString()).join('');
+					const integerPart = subnormal ? 0 : 1;
 
 					const descElt = this.shadowRoot.querySelector('.significand-bits .desc');
-					if (subnormal) {
-						descElt.innerHTML =
-							`Significand<br>0.${valueBase2}<sub>2</sub><br>= 0.${value}`;
-					} else {
-						descElt.innerHTML =
-							`Significand<br>1.${valueBase2}<sub>2</sub><br>= 1.${value}`;
-					}
+					descElt.replaceChildren(
+						div([], 'Significand'),
+						div([],
+							span([], `${integerPart}.${valueBase2}`),
+							sub([], '2'),
+						),
+						div([], `= ${integerPart}.${value}`)
+					);
 				}
 			}
 
