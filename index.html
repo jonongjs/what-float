@@ -62,7 +62,9 @@ html, body {
 	color: var(--fg-color);
 	background-color: var(--bg-color);
 }
-#bright:checked ~ #bright-icon {
+#bright:checked ~ #bright-icon,
+#bright:checked ~ #fullscreen-btn
+{
 	--bg-color: var(--light-grey);
 	--fg-color: var(--dark);
 	color: var(--fg-color);
@@ -890,7 +892,7 @@ body:fullscreen .arrows-in {
 
 .desc div {
 	background-color: white;
-	color: var(--bg-color);
+	color: var(--dark);
 }
 
 .desc .emphasis {
