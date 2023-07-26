@@ -446,14 +446,22 @@ body:fullscreen .arrows-in {
 				>
 				</bit-field>
 				<script>
+					function setBitField(inputValue) {
+						//HACK: if we keyed in 'NaN', force an actual NaN
+						if (inputValue.toLowerCase() == 'nan') {
+							inputValue = '';
+						}
+						document.getElementById('inspector-bits')
+							.setAttribute('data-value', inputValue);
+					}
+
 					document.getElementById('inspector-form')
 						.addEventListener('submit', function(evt) {
 							evt.preventDefault();
 
-							const inputValue = document.getElementById('inspector-input')
-								.value;
-							document.getElementById('inspector-bits')
-								.setAttribute('data-value', inputValue);
+							setBitField(document.getElementById('inspector-input')
+								.value.trim()
+							);
 						});
 
 					document.getElementById('inspector-bits')
@@ -469,13 +477,24 @@ body:fullscreen .arrows-in {
 						});
 				</script>
 			</div>
-			<div class="click-in">Special values:
+			<div class="click-in font-08em">Special values:
 				<ul class=font-08em>
-					<li><pre>-0</pre></li>
-					<li><pre>NaN</pre></li>
-					<li><pre>Infinity</pre>, <pre>-Infinity</pre></li>
+					<li><pre class="no-advance set-bits">-0</pre></li>
+					<li><pre class="no-advance set-bits">NaN</pre></li>
+					<li>
+						<pre class="no-advance set-bits">Infinity</pre>,
+						<pre class="no-advance set-bits">-Infinity</pre>
+					</li>
 					<li>Subnormal numbers (exponent bits are all 0)</li>
 				</ul>
+				<script>
+					function onSetBitField(evt) {
+						evt.preventDefault();
+						setBitField(evt.target.textContent)
+					}
+					document.querySelectorAll('pre.set-bits')
+						.forEach(elt => elt.onclick = onSetBitField);
+				</script>
 			</div>
 		</section>
 
