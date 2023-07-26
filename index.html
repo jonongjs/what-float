@@ -837,6 +837,8 @@ body:fullscreen .arrows-in {
 
 	border: 1px solid var(--fg-color);
 	padding: 5px;
+
+	min-height: 6.5em;
 }
 
 .section {
@@ -886,24 +888,40 @@ body:fullscreen .arrows-in {
 	transform: translateX(-50%);
 }
 
-.desc::first-line {
+.desc div {
+	background-color: white;
+	color: var(--bg-color);
+}
+
+.desc .emphasis {
+	color: var(--section-color);
+}
+
+.desc div:first-child {
 	font-size: 0.7em;
+	background-color: transparent;
+	color: var(--fg-color);
+}
+
+.sign-bits {
+	--section-color: var(--reddish);
+}
+.exponent-bits {
+	--section-color: var(--greenish);
+}
+.significand-bits {
+	--section-color: var(--dark-orange);
 }
 
 .sign-bits .desc {
 	transform: translateX(-20%);
 }
 
-.sign-bits .row, .sign-bits .desc {
-	background-color: var(--reddish);
-}
-
-.exponent-bits .row, .exponent-bits .desc {
-	background-color: var(--greenish);
-}
-
-.significand-bits .row, .significand-bits .desc {
-	background-color: var(--dark-orange);
+.sign-bits .row, .sign-bits .desc,
+.exponent-bits .row, .exponent-bits .desc,
+.significand-bits .row, .significand-bits .desc
+{
+	background-color: var(--section-color);
 }
 
 sup {
@@ -915,6 +933,9 @@ sup {
 sub {
 	font-size: 0.5em;
 }
+
+.small { font-size: 0.7em }
+.desc .warn { color: var(--reddish) }
 `;
 
 					shadow.append(style, root);
@@ -1008,21 +1029,20 @@ sub {
 					this.shadowRoot.querySelector('.sign-bits .desc').
 						replaceChildren(
 							div([], 'Sign'),
-							div([], signBits[0] == 0 ? '+1' : '-1')
+							div(['emphasis'], signBits[0] == 0 ? '+1' : '-1')
 						);
 				}
 
 				onExponentBitsChange(signBits, exponentBits, significandBits) {
-					const nan = exponentBits.every(b => b == 1)
-						&& !significandBits.every(b => b == 0);
+					const nanOrInfinity = exponentBits.every(b => b == 1);
 
 					const subnormal = exponentBits.every(b => b == 0);
 
 					const descElt = this.shadowRoot.querySelector('.exponent-bits .desc');
-					if (nan) {
+					if (nanOrInfinity) {
 						descElt.replaceChildren(
 							div([], 'Exponent'),
-							div([], '-')
+							div([], '-'),
 						);
 					} else {
 						let bias;
@@ -1041,13 +1061,12 @@ sub {
 						const biasBase2 = bias.toString(2).padStart(exponentBits.length, '0');
 						const valueBase2 = exponentBits.map(b => b.toString()).join('');
 
-
 						descElt.replaceChildren(
 							div([], 'Exponent'),
 							div([],
 								span([], '2'),
 								sup([],
-									span([], valueBase2),
+									span(['emphasis'], valueBase2),
 									sub([], '2'),
 									span([], ` - ${biasBase2}`),
 									sub([], '2')
@@ -1055,17 +1074,22 @@ sub {
 							),
 							div([],
 								span([], '= 2'),
-								sup([], `${value} - ${bias}`),
+								sup([],
+									span(['emphasis'], value.toString()),
+									span([], ` - ${bias}`)
+								),
 								span([], ' = 2'),
 								sup([], `${value - bias}`)
+							),
+							div(['warn', 'small'],
+								(subnormal) ?  '⚠ Subnormal' : ' '
 							)
 						);
 					}
 				}
 
 				onSignificandBitsChange(signBits, exponentBits, significandBits) {
-					const nan = exponentBits.every(b => b == 1)
-						&& !significandBits.every(b => b == 0);
+					const nanOrInfinity = exponentBits.every(b => b == 1);
 
 					const subnormal = exponentBits.every(b => b == 0);
 
@@ -1077,19 +1101,31 @@ sub {
 						.reverse()
 						.reduce((a, b, idx) => a + (BigInt(b) * smallestBit * (2n ** BigInt(idx))), 0n)
 						.toString()
-						.padStart(numDigits, '0');
+						.padStart(numDigits, '0')
+						.replace(/0+$/, '')
+						.padEnd(1, '0');
 					const valueBase2 = significandBits.map(b => b.toString()).join('');
 					const integerPart = subnormal ? 0 : 1;
 
 					const descElt = this.shadowRoot.querySelector('.significand-bits .desc');
-					descElt.replaceChildren(
-						div([], 'Significand'),
-						div([],
-							span([], `${integerPart}.${valueBase2}`),
-							sub([], '2'),
-						),
-						div([], `= ${integerPart}.${value}`)
-					);
+					if (nanOrInfinity) {
+						descElt.replaceChildren(
+							div([], 'Significand'),
+							div([], '-')
+						);
+					} else {
+						descElt.replaceChildren(
+							div([], 'Significand'),
+							div([],
+								span([],
+									span([], `${integerPart}.`),
+									span(['emphasis'], `${valueBase2}`)
+								),
+								sub([], '2')
+							),
+							div([], `= ${integerPart}.${value}`)
+						);
+					}
 				}
 			}
 
